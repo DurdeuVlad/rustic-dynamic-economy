@@ -243,6 +243,30 @@ flowchart LR
 ## 9. Open Decisions Pending Team Confirmation
 
 The following architectural choices are explicitly flagged for team signoff:
-1. **Rotation Interval Trigger:** Should rotation occur strictly upon server restart, or periodically during active play (e.g., every 24,000 in-game ticks / Minecraft day)?
+1. ~~**Rotation Interval Trigger**~~ **RESOLVED** - see 9.1 below.
 2. **Sensitivity and Decay Parameters:** Proposed defaults ($S = 0.05$, $\lambda = 0.02/\text{hr}$, $\Delta_{\max} = 0.25$) are ready for testing; final calibration will be refined with live staging pilot data.
 3. **Currency Slot Allocation Proposal:** Team signoff on the "Top-2 Canonical Denominations with Directional Rounding" algorithm.
+
+### 9.1 Resolved: Rotation Trigger = Hybrid (Option C), B-weighted with A as offline catch-up
+
+Decided (see [issue #9](https://github.com/DurdeuVlad/rustic-dynamic-economy/issues/9)): **Option C (hybrid)**,
+with periodic in-game rotation (Option B) as the primary driver and restart-triggered
+rotation (Option A) serving only as a catch-up mechanism for when the server was offline
+during a scheduled rotation window - not as an equally-weighted second trigger.
+
+Concretely:
+- **Primary trigger**: a scheduled in-game timer (default: every Minecraft dawn / 24,000
+  ticks) rotates each NPC's visible slots while the server is live, giving the "living
+  market" feel from Option B.
+- **Catch-up trigger**: on server boot, compare the current time against the
+  last-rotation timestamp already tracked in `active_slots` (Section 3). If more time has
+  elapsed than one full rotation interval - meaning the server was offline through one or
+  more scheduled rotations - perform one rotation immediately at startup to catch up,
+  then resume the normal in-game timer. If the server was online continuously, restart
+  does **not** force an extra rotation on top of the timer - A only fires as a backstop
+  for missed windows, never as a second independent trigger competing with B.
+- Open sub-question carried over from the original discussion (not yet decided): whether
+  to close/defer an NPC's trade screen gracefully if a rotation lands while a player has
+  it open, or simply let the next screen-open reflect the new stock. Phase 4 implementation
+  should default to the simpler "next open reflects new stock" behavior unless testing
+  surfaces a real problem with it.
