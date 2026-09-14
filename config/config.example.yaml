@@ -1,0 +1,149 @@
+# ==============================================================================
+# Rustic Dynamic Economy - Configuration Policy
+# Modpack: Rustic Craft 2 SMP (NeoForge 1.21.1)
+# Parsed via SnakeYAML (bundled via Kiwi / cloth-config)
+# ==============================================================================
+
+version: 1
+
+# ------------------------------------------------------------------------------
+# Currency System Definition
+# Base unit: 1 Bronze coin. Higher tiers scale by factor of 64.
+# ------------------------------------------------------------------------------
+currency:
+  base_coin: "adys_decorations:bronze_coin"
+  tiers:
+    - id: "adys_decorations:bronze_coin"
+      name: "Bronze"
+      value: 1
+    - id: "adys_decorations:brass_coin"
+      name: "Brass"
+      value: 64
+    - id: "adys_decorations:silver_coin"
+      name: "Silver"
+      value: 4096
+    - id: "adys_decorations:gold_coin"
+      name: "Gold"
+      value: 262144
+
+# ------------------------------------------------------------------------------
+# Default Pricing & Demand Dynamics
+# ------------------------------------------------------------------------------
+defaults:
+  # Multiplier boundaries (min: -50% floor, max: +500% ceiling)
+  min_multiplier: 0.5
+  max_multiplier: 6.0
+  
+  # Max price impact per single unit traded (0.05 = +5% per unit bought)
+  sensitivity: 0.05
+  
+  # Maximum multiplier jump allowed in a single transaction (anti-burst cap)
+  max_single_trade_delta: 0.25
+  
+  # Multiplier decay towards 1.0 baseline
+  decay:
+    enabled: true
+    interval_minutes: 60           # Frequency of decay check
+    decay_rate: 0.02               # Multiplier adjustment towards 1.0 per interval
+
+# ------------------------------------------------------------------------------
+# Inventory Pool & Rotation Settings
+# ------------------------------------------------------------------------------
+rotation:
+  # Schedule: 'restart' (only on server restart) or 'interval' (periodic in-session)
+  # NOTE: Subject to final team confirmation
+  mode: "restart"
+  interval_ticks: 24000            # 24000 ticks = 1 in-game Minecraft day (if mode is interval)
+  default_visible_slots: 6         # Total slots displayed on NPC trader role
+  wildcard_slots: 1                # Guaranteed random novelty slots (unweighted)
+
+# ------------------------------------------------------------------------------
+# Database Settings (SQLite)
+# Safe for live read-only inspection; writes strictly mediated by server runtime.
+# ------------------------------------------------------------------------------
+database:
+  file_path: "world/data/rustic_economy.db"
+  busy_timeout_ms: 5000
+
+# ------------------------------------------------------------------------------
+# NPC Thematic Trade Pools
+# Each NPC maintains an internal candidate pool larger than visible slots.
+# ------------------------------------------------------------------------------
+npcs:
+  # ----------------------------------------------------------------------------
+  # Pilot NPC 1: Blacksmith (Metals, ingots, tools)
+  # ----------------------------------------------------------------------------
+  blacksmith_durand:
+    npc_name: "Master Blacksmith Durand"
+    theme: "metallurgy"
+    visible_slots: 6
+    wildcard_slots: 1
+    trade_pool:
+      - item: "minecraft:iron_ingot"
+        trade_type: "SELL"         # Player sells iron to NPC
+        base_price_bronze: 32      # 32 Bronze
+        sensitivity: 0.03          # High supply item, slower price shift
+      - item: "minecraft:copper_ingot"
+        trade_type: "SELL"
+        base_price_bronze: 16
+        sensitivity: 0.02
+      - item: "minecraft:gold_ingot"
+        trade_type: "SELL"
+        base_price_bronze: 256     # 4 Brass
+        sensitivity: 0.05
+      - item: "minecraft:diamond"
+        trade_type: "BUY"          # Player buys diamond from NPC
+        base_price_bronze: 2048    # 32 Brass
+        min_multiplier: 0.8        # Diamonds won't drop below 80% base price
+        max_multiplier: 5.0
+        sensitivity: 0.10          # High sensitivity for rare goods
+      - item: "minecraft:netherite_scrap"
+        trade_type: "BUY"
+        base_price_bronze: 8192    # 2 Silver
+        min_multiplier: 1.0        # Premium end-game good cannot be discounted
+        max_multiplier: 6.0
+      - item: "minecraft:raw_iron"
+        trade_type: "SELL"
+        base_price_bronze: 24
+      - item: "minecraft:coal"
+        trade_type: "BUY"
+        base_price_bronze: 8
+      - item: "minecraft:obsidian"
+        trade_type: "BUY"
+        base_price_bronze: 128     # 2 Brass
+
+  # ----------------------------------------------------------------------------
+  # Pilot NPC 2: Agronomist / Rancher (Farming & Animal Supplies)
+  # ----------------------------------------------------------------------------
+  farmer_garth:
+    npc_name: "Garth the Provisioner"
+    theme: "agriculture"
+    visible_slots: 6
+    wildcard_slots: 1
+    trade_pool:
+      - item: "minecraft:wheat"
+        trade_type: "SELL"
+        base_price_bronze: 2
+        sensitivity: 0.01          # Bulk agricultural good
+      - item: "minecraft:potato"
+        trade_type: "SELL"
+        base_price_bronze: 2
+      - item: "minecraft:carrot"
+        trade_type: "SELL"
+        base_price_bronze: 2
+      - item: "minecraft:pumpkin"
+        trade_type: "SELL"
+        base_price_bronze: 6
+      - item: "minecraft:golden_apple"
+        trade_type: "BUY"
+        base_price_bronze: 1024    # 16 Brass
+        sensitivity: 0.08
+      - item: "minecraft:saddle"
+        trade_type: "BUY"
+        base_price_bronze: 4096    # 1 Silver
+      - item: "minecraft:lead"
+        trade_type: "BUY"
+        base_price_bronze: 64      # 1 Brass
+      - item: "minecraft:honey_bottle"
+        trade_type: "BUY"
+        base_price_bronze: 48

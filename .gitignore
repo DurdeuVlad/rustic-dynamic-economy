@@ -1,0 +1,23 @@
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Logs & Temporary files
+*.log
+*.tmp
+
+# SQLite live databases (never commit runtime DB)
+*.db
+*.sqlite
+*.sqlite3
+
+# Local environment & secrets
+.env
+.env.local
+config/config.local.yaml
+
+# IDE & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
