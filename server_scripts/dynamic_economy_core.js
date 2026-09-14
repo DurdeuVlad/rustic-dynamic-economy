@@ -50,12 +50,14 @@ try {
 
 // Configuration for Phase 1 Pilot Testing
 const PHASE_1_CONFIG = {
-    // Restrict live mutation to designated pilot NPCs during Phase 1
+    // Restrict live mutation to designated pilot NPCs during Phase 1.
+    // 'Sile' is a real Trader-role NPC on staging (blacksmith, confirmed via the
+    // CustomNPCs economy audit) - the scaffolding's placeholder names
+    // ("Master Blacksmith Durand" etc.) don't exist on this server and would
+    // never actually trigger. 'TestTrader' kept as a fallback for a manually
+    // spawned test NPC if one is ever added.
     pilotCohort: [
-        'Master Blacksmith Durand',
-        'Garth the Provisioner',
-        'Durand',
-        'Provisioner Garth',
+        'Sile',
         'TestTrader'
     ],
     // Set to true to allow any Trader NPC to be tested (useful if custom test NPC is spawned)

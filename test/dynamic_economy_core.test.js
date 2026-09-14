@@ -15,8 +15,7 @@ console.log('--- Running dynamic_economy_core Unit Tests ---');
 
 // Test 1: isEligiblePilotNpc
 {
-    assert.strictEqual(isEligiblePilotNpc({ getName: () => 'Master Blacksmith Durand' }), true);
-    assert.strictEqual(isEligiblePilotNpc({ getName: () => 'Garth the Provisioner' }), true);
+    assert.strictEqual(isEligiblePilotNpc({ getName: () => 'Sile' }), true);
     assert.strictEqual(isEligiblePilotNpc({ getName: () => 'TestTrader' }), true);
     assert.strictEqual(isEligiblePilotNpc({ getName: () => 'Random Villager John' }), false);
     console.log('✓ Test 1 Passed: Pilot NPC eligibility filtering');
@@ -61,7 +60,7 @@ console.log('--- Running dynamic_economy_core Unit Tests ---');
     };
 
     let mockNpc = {
-        getName: () => 'Master Blacksmith Durand',
+        getName: () => 'Sile',
         getRole: () => mockRole,
         getWorld: () => ({
             createItem: (id, dmg, count) => ({ id, count, getName: () => id, getStackSize: () => count })
