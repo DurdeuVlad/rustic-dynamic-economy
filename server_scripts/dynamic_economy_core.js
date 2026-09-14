@@ -51,13 +51,20 @@ try {
 // Configuration for Phase 1 Pilot Testing
 const PHASE_1_CONFIG = {
     // Restrict live mutation to designated pilot NPCs during Phase 1.
-    // 'Sile' is a real Trader-role NPC on staging (blacksmith, confirmed via the
-    // CustomNPCs economy audit) - the scaffolding's placeholder names
-    // ("Master Blacksmith Durand" etc.) don't exist on this server and would
-    // never actually trigger. 'TestTrader' kept as a fallback for a manually
-    // spawned test NPC if one is ever added.
+    // 'Sile' was the original pick but turned out to be a BUYER NPC (her
+    // TraderSold slots hold coins, TraderCurrency holds the raw materials she
+    // wants - confirmed live via /data get entity) - the inverse of what this
+    // Phase 1 code assumes (NPC sells an item, player pays currency). A real
+    // trade with her produced zero event output because of this shape
+    // mismatch, not a bug in the event hook itself.
+    // 'Lenghel' is a genuine sells-item-for-coins NPC (confirmed live: her
+    // TraderSold slots are items - caged animals - and TraderCurrency holds
+    // coins), matching this code's actual assumption. Switched to her for
+    // Phase 1 pilot testing. 'TestTrader' kept as a fallback for a manually
+    // spawned test NPC if one is ever added. Supporting buyer-direction NPCs
+    // like Sile is real future work, not in scope for Phase 1.
     pilotCohort: [
-        'Sile',
+        'Lenghel',
         'TestTrader'
     ],
     // Set to true to allow any Trader NPC to be tested (useful if custom test NPC is spawned)
