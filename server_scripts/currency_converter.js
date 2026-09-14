@@ -78,11 +78,21 @@ const CurrencyConverter = {
 
         // If exact match or lowest tier reached (Bronze), no secondary slot needed
         if (remainder === 0 || primaryIndex === COIN_TIERS.length - 1) {
-            // Handle Gold overflow where primaryCount > 64
+            // Handle Gold overflow where primaryCount > 64. Both slots are forced to
+            // hold the same (highest) tier here, so there is no room left for a
+            // sub-tier remainder - if one exists (only possible when primaryIndex is
+            // NOT the lowest tier, i.e. remainder came from a non-Bronze split further
+            // up), it must be folded into the Gold count itself: ceiling (round up by
+            // one coin) when the player is paying, floor (drop it) when the NPC pays.
             if (primaryCount > 64) {
+                let totalCount = primaryCount;
+                if (remainder !== 0 && isPlayerPaying) {
+                    totalCount += 1;
+                }
+                totalCount = Math.min(totalCount, 128); // hard cap: 128 Gold = 33,554,432 Bronze
                 return {
-                    currency1: { id: primaryTier.id, count: 64 },
-                    currency2: { id: primaryTier.id, count: Math.min(primaryCount - 64, 64) }
+                    currency1: { id: primaryTier.id, count: Math.min(totalCount, 64) },
+                    currency2: { id: primaryTier.id, count: Math.max(totalCount - 64, 0) }
                 };
             }
             return {
@@ -111,11 +121,21 @@ const CurrencyConverter = {
             }
         }
 
-        // Handle Gold overflow where primaryCount > 64
+        // Handle Gold overflow where primaryCount > 64. As above, both slots are
+        // forced to the same tier, so the already-computed secondaryCount (a
+        // correctly-rounded sub-tier remainder) can't be represented directly -
+        // fold it into the total instead of silently dropping it: ceiling (add
+        // one more coin) when the player pays and a remainder exists, floor
+        // (drop it) when the NPC pays.
         if (primaryCount > 64) {
+            let totalCount = primaryCount;
+            if (secondaryCount > 0 && isPlayerPaying) {
+                totalCount += 1;
+            }
+            totalCount = Math.min(totalCount, 128); // hard cap: 128 Gold = 33,554,432 Bronze
             return {
-                currency1: { id: primaryTier.id, count: 64 },
-                currency2: { id: primaryTier.id, count: Math.min(primaryCount - 64, 64) }
+                currency1: { id: primaryTier.id, count: Math.min(totalCount, 64) },
+                currency2: { id: primaryTier.id, count: Math.max(totalCount - 64, 0) }
             };
         }
 

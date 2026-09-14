@@ -94,6 +94,37 @@ console.log('--- Running CurrencyConverter Unit Tests ---');
     console.log('✓ Test 7 Passed: Gold overflow split across both slots');
 }
 
+// Test 9 (regression, found by test/currency_rounding_simulation.js): Gold overflow
+// WITH a non-zero sub-Gold remainder must round the remainder into the Gold count,
+// never silently drop it. Price 17,250,000 Bronze = 65 Gold + 210,640 Bronze
+// remainder (not evenly divisible). The old buggy code returned exactly 65 Gold,
+// discarding the remainder entirely - undercharging the player by 210,640 Bronze.
+{
+    let resOverflowRemainder = CurrencyConverter.toTwoSlotCoins(17250000, true);
+    assert.strictEqual(resOverflowRemainder.currency1.id, 'adys_decorations:gold_coin');
+    assert.strictEqual(resOverflowRemainder.currency1.count, 64);
+    assert.strictEqual(resOverflowRemainder.currency2.id, 'adys_decorations:gold_coin');
+    assert.strictEqual(resOverflowRemainder.currency2.count, 2); // 66 total, rounded up from 65.8
+    let backOverflow = CurrencyConverter.fromTwoSlotCoins(
+        resOverflowRemainder.currency1.id, resOverflowRemainder.currency1.count,
+        resOverflowRemainder.currency2.id, resOverflowRemainder.currency2.count
+    );
+    assert.ok(backOverflow >= 17250000, `Buy-side must never undercharge: got ${backOverflow}, price was 17250000`);
+    console.log('✓ Test 9 Passed: Gold overflow with sub-Gold remainder rounds up instead of discarding value');
+}
+
+// Test 10: same overflow-with-remainder case, but NPC paying player (sell) - must
+// floor/drop the remainder, never round up (never overpay).
+{
+    let resOverflowSell = CurrencyConverter.toTwoSlotCoins(17250000, false);
+    let backOverflowSell = CurrencyConverter.fromTwoSlotCoins(
+        resOverflowSell.currency1.id, resOverflowSell.currency1.count,
+        resOverflowSell.currency2.id, resOverflowSell.currency2.count
+    );
+    assert.ok(backOverflowSell <= 17250000, `Sell-side must never overpay: got ${backOverflowSell}, price was 17250000`);
+    console.log('✓ Test 10 Passed: Gold overflow with sub-Gold remainder floors correctly on sell side');
+}
+
 // Test 8: fromTwoSlotCoins with mock item objects
 {
     let mockItem1 = { getName: () => 'adys_decorations:brass_coin', getStackSize: () => 2 };

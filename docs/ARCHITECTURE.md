@@ -245,7 +245,7 @@ flowchart LR
 The following architectural choices are explicitly flagged for team signoff:
 1. ~~**Rotation Interval Trigger**~~ **RESOLVED** - see 9.1 below.
 2. **Sensitivity and Decay Parameters:** Proposed defaults ($S = 0.05$, $\lambda = 0.02/\text{hr}$, $\Delta_{\max} = 0.25$) are ready for testing; final calibration will be refined with live staging pilot data.
-3. **Currency Slot Allocation Proposal:** Team signoff on the "Top-2 Canonical Denominations with Directional Rounding" algorithm.
+3. ~~**Currency Slot Allocation Proposal**~~ **RESOLVED** - see 9.2 below.
 
 ### 9.1 Resolved: Rotation Trigger = Hybrid (Option C), B-weighted with A as offline catch-up
 
@@ -270,3 +270,36 @@ Concretely:
   it open, or simply let the next screen-open reflect the new stock. Phase 4 implementation
   should default to the simpler "next open reflects new stock" behavior unless testing
   surfaces a real problem with it.
+
+### 9.2 Resolved: Currency Slot Allocation = Top-2 Canonical Denominations, confirmed by simulation
+
+Decided (see [issue #10](https://github.com/DurdeuVlad/rustic-dynamic-economy/issues/10)):
+the proposed algorithm is confirmed correct, but empirical simulation (not just analytical
+review) found and fixed one real edge-case bug in the original implementation before
+confirming it.
+
+**Method**: rather than resolve this by discussion, `test/currency_rounding_simulation.js`
+exercises the actual shipped `currency_converter.js` module (not a reimplementation) across
+1,221 price points spanning realistic base prices (8 Bronze to 5,000,000 Bronze) through
+the full pricing multiplier range (0.5x-6.0x), checking for: invalid ItemStack states
+(count > 64 or negative), round-trip rounding error magnitude, and buy-then-sell
+arbitrage (a player profiting purely from rounding with no price change).
+
+**Bug found and fixed**: the Gold-overflow path (prices needing more than 64 Gold coins,
+i.e. above 16,777,216 Bronze) silently discarded any sub-Gold-tier remainder instead of
+rounding it into the Gold count - undercharging the player by up to one full Silver
+coin's worth of value per trade in that range. Fixed to fold the remainder into the Gold
+total using the same directional rounding rule as everywhere else (ceiling when the
+player pays, floor when the NPC pays). Covered by two new regression tests
+(`test/currency_converter.test.js`, tests 9-10).
+
+**Result after the fix**: 0 invalid states, 0 arbitrage cases, and the directional bias
+is correctly asymmetric across the full tested range - the NPC never undercharges on a
+buy and never overpays on a sell. Round-trip error is bounded and small for all
+realistic prices (this server's actual economy tops out around a few Gold coins per
+item, per the earlier CustomNPCs audit - nowhere near the tens-of-millions-Bronze range
+where any meaningful error appears at all).
+
+**Approved, no further changes needed** unless a future price genuinely needs to exceed
+the 128-Gold-coin hard cap (33,554,432 Bronze) - not expected to matter for this
+economy, but noted here as the actual ceiling of what two coin slots can represent.
