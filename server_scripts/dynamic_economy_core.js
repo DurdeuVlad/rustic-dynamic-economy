@@ -344,11 +344,10 @@ if (registrationSuccess) {
     console.warn('[RusticEconomy] Event hook could not be registered immediately. Script will await event bus availability.');
 }
 
-// Export for testing / KubeJS inter-script access
-if (typeof global !== 'undefined') {
-    global.handleTraderEvent = handleTraderEvent;
-    global.PHASE_1_CONFIG = PHASE_1_CONFIG;
-}
+// No explicit global export needed for the live KubeJS runtime - see the
+// identical note in currency_converter.js. Assigning to `global` is not
+// permitted in KubeJS server scripts (confirmed live), and unnecessary
+// there regardless since server_scripts share one top-level scope.
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         handleTraderEvent: handleTraderEvent,

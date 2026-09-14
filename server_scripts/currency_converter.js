@@ -289,15 +289,13 @@ const CurrencyConverter = {
     }
 };
 
-// Export for KubeJS runtime (Rhino global scope)
-if (typeof global !== 'undefined') {
-    global.CurrencyConverter = CurrencyConverter;
-    global.COIN_TIERS = COIN_TIERS;
-}
-if (typeof globalThis !== 'undefined') {
-    globalThis.CurrencyConverter = CurrencyConverter;
-    globalThis.COIN_TIERS = COIN_TIERS;
-}
+// No explicit global/globalThis export needed for the live KubeJS runtime:
+// server_scripts files share one top-level scope there, so the bare
+// `CurrencyConverter`/`COIN_TIERS` identifiers declared above are already
+// visible to other server_scripts files directly. Assigning to `global` is
+// also not permitted in KubeJS server scripts (sandboxed) - confirmed live,
+// not assumed. Node.js test files bridge this themselves via require() +
+// their own explicit global assignment, independent of this file.
 
 // Export for Node.js test suites
 if (typeof module !== 'undefined' && module.exports) {
