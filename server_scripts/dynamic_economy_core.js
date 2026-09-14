@@ -225,12 +225,12 @@ function handleTraderEvent(event) {
             return;
         }
 
-        console.info(`[RusticEconomy] Intercepted trade on pilot NPC '${npcName}' by player '${playerName}'.`);
+        console.info('[RusticEconomy] Intercepted trade on pilot NPC \'' + npcName + '\' by player \'' + playerName + '\'.');
 
         // Retrieve NPC Role
         let role = npc.getRole ? npc.getRole() : null;
         if (!isTraderRole(role)) {
-            console.warn(`[RusticEconomy] NPC '${npcName}' has non-trader role (${role ? role.getClass().getName() : 'null'}). Skipping.`);
+            console.warn('[RusticEconomy] NPC \'' + npcName + '\' has non-trader role (' + (role ? role.getClass().getName() : 'null') + '). Skipping.');
             return;
         }
 
@@ -244,7 +244,7 @@ function handleTraderEvent(event) {
         // Resolve trade slot index
         let slotIndex = resolveTradeSlotIndex(role, soldItem, event);
         if (slotIndex < 0 || slotIndex >= 18) {
-            console.warn(`[RusticEconomy] Could not resolve trade slot index for sold item: ${getItemId(soldItem)}. Defaulting to slot 0.`);
+            console.warn('[RusticEconomy] Could not resolve trade slot index for sold item: ' + getItemId(soldItem) + '. Defaulting to slot 0.');
             slotIndex = 0;
         }
 
@@ -283,17 +283,17 @@ function handleTraderEvent(event) {
         role.set(slotIndex, invariantSoldStack, newCoinStacks.currency1, newCoinStacks.currency2);
 
         // Detailed observability logging
-        let c1Desc = coinSpec.currency1 ? `${coinSpec.currency1.id} x${coinSpec.currency1.count}` : 'none';
-        let c2Desc = coinSpec.currency2 ? `${coinSpec.currency2.id} x${coinSpec.currency2.count}` : 'none';
+        let c1Desc = coinSpec.currency1 ? (coinSpec.currency1.id + ' x' + coinSpec.currency1.count) : 'none';
+        let c2Desc = coinSpec.currency2 ? (coinSpec.currency2.id + ' x' + coinSpec.currency2.count) : 'none';
         let cycleNotice = cycled ? ' [CEILING REACHED - CYCLED TO BASE]' : '';
 
         console.info(
-            `[RusticEconomy:Phase1] Slot ${slotIndex} updated on '${npcName}': ` +
-            `Item=${invariantSoldId} x${invariantSoldCount} | ` +
-            `Price: ${currentBronze} -> ${nextBronze} Bronze (${c1Desc}, ${c2Desc})${cycleNotice}`
+            '[RusticEconomy:Phase1] Slot ' + slotIndex + ' updated on \'' + npcName + '\': ' +
+            'Item=' + invariantSoldId + ' x' + invariantSoldCount + ' | ' +
+            'Price: ' + currentBronze + ' -> ' + nextBronze + ' Bronze (' + c1Desc + ', ' + c2Desc + ')' + cycleNotice
         );
         console.info(
-            `[RusticEconomy] Invariant verified: Traded item '${invariantSoldId} x${invariantSoldCount}' preserved strictly.`
+            '[RusticEconomy] Invariant verified: Traded item \'' + invariantSoldId + ' x' + invariantSoldCount + '\' preserved strictly.'
         );
 
         // [Phase 2 TODO]: DbManager.recordTrade(npcName, slotIndex, invariantSoldId, invariantSoldCount, player.getUUID(), playerName, 'BUY', ...);
@@ -301,7 +301,7 @@ function handleTraderEvent(event) {
         // [Phase 4 TODO]: RotationEngine.handleSlotRotation(npc);
 
     } catch (err) {
-        console.error(`[RusticEconomy] Exception in handleTraderEvent: ${err}`);
+        console.error('[RusticEconomy] Exception in handleTraderEvent: ' + err);
         if (err.stack) console.error(err.stack);
     }
 }
@@ -319,7 +319,7 @@ if (typeof NativeEvents !== 'undefined' && typeof NativeEvents.onEvent === 'func
         registrationSuccess = true;
         console.info('[RusticEconomy] Successfully hooked RoleEvent$TraderEvent via NativeEvents.onEvent.');
     } catch (e) {
-        console.warn(`[RusticEconomy] NativeEvents.onEvent hook failed: ${e}. Attempting NeoForge EVENT_BUS fallback.`);
+        console.warn('[RusticEconomy] NativeEvents.onEvent hook failed: ' + e + '. Attempting NeoForge EVENT_BUS fallback.');
     }
 }
 
@@ -334,7 +334,7 @@ if (!registrationSuccess) {
             console.warn('[RusticEconomy] NeoForge.EVENT_BUS or RoleEvent$TraderEvent class not ready at load time.');
         }
     } catch (e) {
-        console.error(`[RusticEconomy] Failed to register on NeoForge.EVENT_BUS: ${e}`);
+        console.error('[RusticEconomy] Failed to register on NeoForge.EVENT_BUS: ' + e);
     }
 }
 
@@ -351,10 +351,10 @@ if (typeof global !== 'undefined') {
 }
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
-        handleTraderEvent,
-        PHASE_1_CONFIG,
-        resolveTradeSlotIndex,
-        isTraderRole,
-        isEligiblePilotNpc
+        handleTraderEvent: handleTraderEvent,
+        PHASE_1_CONFIG: PHASE_1_CONFIG,
+        resolveTradeSlotIndex: resolveTradeSlotIndex,
+        isTraderRole: isTraderRole,
+        isEligiblePilotNpc: isEligiblePilotNpc
     };
 }

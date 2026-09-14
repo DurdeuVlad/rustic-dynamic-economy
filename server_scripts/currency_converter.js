@@ -210,7 +210,7 @@ const CurrencyConverter = {
                 return Item.of(itemId, safeCount);
             }
         } catch (e) {
-            console.error(`[RusticEconomy] Error creating ItemStack for ${itemId}: ${e}`);
+            console.error('[RusticEconomy] Error creating ItemStack for ' + itemId + ': ' + e);
         }
 
         return null;
@@ -301,5 +301,5 @@ if (typeof globalThis !== 'undefined') {
 
 // Export for Node.js test suites
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CurrencyConverter, COIN_TIERS };
+    module.exports = { CurrencyConverter: CurrencyConverter, COIN_TIERS: COIN_TIERS };
 }
